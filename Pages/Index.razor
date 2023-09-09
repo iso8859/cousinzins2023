@@ -1,28 +1,45 @@
 ﻿@page "/"
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 <PageTitle>Index</PageTitle>
-@foreach (Card c in g.cards)
+@if (g != null)
 {
-    <div class="box">
-        <img src="/images/@c.image" />
-    <p>Réponse : <input type="text" value="@c.data" @oninput="(s)=>onchange(s, c)" /></p>
-    <p>La réponse est @check(c)</p>
+    <div>
+        <p>@g.cards.Count(_ => _.isCorrect())/@g.cards.Count() réponses correctes.</p>
+        <p><a href="https://cousinzins.fr/inscription">Pour vous inscrire à notre newsletter.</a></p>
+    </div>
+    @foreach (Card c in g.cards)
+    {
+        <div class="box">
+            <img src="/images/@c.image" alt="@c.image" />
+            <p>Réponse : <input id="@c.image" type="text" value="@c.data" @oninput="(s)=>onchange(s, c)" /></p>
+            <p>La réponse est @c.status()</p>
+        </div>
+    }
+    <div>
+        <button onclick="(e)=>@reset()">Tout effacer</button>
     </div>
 }
 
-@code{
-    Game g = new();
+@code {
+    Game g;
 
-    void onchange(ChangeEventArgs e, Card c)
+    protected override async Task OnInitializedAsync()
+    {
+        g = new Game();
+        if (await localStorage.ContainKeyAsync("game"))
+            g = await localStorage.GetItemAsync<Game>("game");
+    }
+
+    async Task onchange(ChangeEventArgs e, Card c)
     {
         c.data = e.Value.ToString();
+        await localStorage.SetItemAsync<Game>("game", g);
         StateHasChanged();
     }
-    string check(Card c)
+
+    async Task reset()
     {
-        string result = "incorrecte";
-        if (c.data!=null && c.answer!=null)
-            result = c.data.ToLower() == c.answer.ToLower() ? "correcte" : "incorrecte";
-        return result;
+        await localStorage.RemoveItemAsync("game");
     }
 }
