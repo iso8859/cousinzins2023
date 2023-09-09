@@ -1,15 +1,28 @@
 ﻿@page "/"
 
 <PageTitle>Index</PageTitle>
+@foreach (Card c in g.cards)
+{
+    <div class="box">
+        <img src="/images/@c.image" />
+    <p>Réponse : <input type="text" value="@c.data" @oninput="(s)=>onchange(s, c)" /></p>
+    <p>La réponse est @check(c)</p>
+    </div>
+}
 
-<h1>Hello, world!</h1>
+@code{
+    Game g = new();
 
-<p style="margin-bottom: 1rem;">
-    Welcome to your new app.
-</p>
-
-<FluentDesignSystemProvider FillColor="#D6D6D6">
-    <FluentCard neutral-palette-source="#CABA8C">
-        <SurveyPrompt Title="How is Blazor working for you?" />
-    </FluentCard>
-</FluentDesignSystemProvider>
+    void onchange(ChangeEventArgs e, Card c)
+    {
+        c.data = e.Value.ToString();
+        StateHasChanged();
+    }
+    string check(Card c)
+    {
+        string result = "incorrecte";
+        if (c.data!=null && c.answer!=null)
+            result = c.data.ToLower() == c.answer.ToLower() ? "correcte" : "incorrecte";
+        return result;
+    }
+}
