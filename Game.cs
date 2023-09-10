@@ -1,5 +1,13 @@
-﻿namespace cousinzins2023
+﻿using System.Reflection.Metadata;
+using System.Text.Json;
+
+namespace cousinzins2023
 {
+    public class Answers
+    {
+        public string[] values { get; set; }
+    }
+
     public class Card
     {
         public string image { get; set; }
@@ -39,5 +47,20 @@
             new Card() { image = "tennis.jpg", answer = "tennis"},
             new Card() { image = "tir.jpg", answer = "tir"}
         };
+
+        public string GetAnswers()
+        {
+            string tmp = JsonSerializer.Serialize(new Answers() { values = cards.Select(_ => _.data).ToArray() });
+            return tmp;
+        }
+
+        public void SetAnswers(string json)
+        {
+            Answers a = JsonSerializer.Deserialize<Answers>(json);
+            for (int i = 0; i < Math.Min(a.values.Length, cards.Count); i++)
+            {
+                cards[i].data = a.values[i];
+            }
+        }
     }
 }

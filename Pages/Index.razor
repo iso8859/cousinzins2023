@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using System.Text.Json;
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 <PageTitle>Index</PageTitle>
@@ -7,6 +8,8 @@
     <div>
         <p>@g.cards.Count(_ => _.isCorrect())/@g.cards.Count() réponses correctes.</p>
         <p><a href="https://cousinzins.fr/inscription">Pour vous inscrire à notre newsletter.</a></p>
+        <p>Trouver le nom des stands ou vous croisez des affiches Cousinzins.</p>
+        <p>Venez montrer que vous avez tout trouvé ou obtenir des indices au stand des Cousinzins, Salle 3</p>
     </div>
     @foreach (Card c in g.cards)
     {
@@ -26,20 +29,36 @@
 
     protected override async Task OnInitializedAsync()
     {
-        g = new Game();
-        if (await localStorage.ContainKeyAsync("game"))
-            g = await localStorage.GetItemAsync<Game>("game");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            g = new Game();
+            if (await localStorage.ContainKeyAsync("g"))
+                try
+                {
+                    g.SetAnswers(await localStorage.GetItemAsStringAsync("g"));
+                }
+                catch
+                {
+                    await localStorage.RemoveItemAsync("g");
+                    g = new Game();
+                }
+            StateHasChanged();
+        }
     }
 
     async Task onchange(ChangeEventArgs e, Card c)
     {
         c.data = e.Value.ToString();
-        await localStorage.SetItemAsync<Game>("game", g);
+        await localStorage.SetItemAsStringAsync("g", g.GetAnswers());
         StateHasChanged();
     }
 
     async Task reset()
     {
-        await localStorage.RemoveItemAsync("game");
+        await localStorage.RemoveItemAsync("g");
     }
 }
